@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   const DECK_CLIENT_ID = process.env.DECK_CLIENT_ID;
   const DECK_SECRET = process.env.DECK_SECRET;
 

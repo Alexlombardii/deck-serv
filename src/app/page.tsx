@@ -3,12 +3,20 @@ import { useEffect, useState } from "react";
 
 declare global {
   interface Window {
-    Deck: any;
+    Deck: {
+      create: (config: {
+        token: string;
+        onSuccess: (data: { public_token: string }) => void;
+        onExit: () => void;
+        onError: (error: Error) => void;
+      }) => {
+        open: () => void;
+      };
+    };
   }
 }
 
 export default function Home() {
-  const [linkToken, setLinkToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [deckLoaded, setDeckLoaded] = useState(false);
@@ -33,12 +41,10 @@ export default function Home() {
   const openDeckWidget = async () => {
     setLoading(true);
     setError(null);
-    setLinkToken(null);
     try {
       const res = await fetch("/api/create-link-token", { method: "POST" });
       const data = await res.json();
       if (res.ok && data.link_token) {
-        setLinkToken(data.link_token);
         if (window.Deck) {
           const handler = window.Deck.create({
             token: data.link_token,
@@ -68,7 +74,7 @@ export default function Home() {
               }
             },
             onExit: () => setLoading(false),
-            onError: (err: any) => {
+            onError: (err: Error) => {
               setError(err?.message || "Deck widget error");
               setLoading(false);
             },
@@ -80,8 +86,8 @@ export default function Home() {
       } else {
         setError(data.error ? JSON.stringify(data.error) : "Unknown error");
       }
-    } catch (err: any) {
-      setError(err.message || "Request failed");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Request failed");
     } finally {
       setLoading(false);
     }
