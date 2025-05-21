@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DECK_CONFIG } from '@/config/deck';
+import { createDeckConnectionService } from '@/infrastructure/factories/deck-connection.factory';
 
 export async function POST(req: NextRequest) {
   const DECK_CLIENT_ID = process.env.DECK_CLIENT_ID;
@@ -33,7 +34,13 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    
+    // Store the connection
+    const service = createDeckConnectionService();
+    await service.createConnection(data.access_token, data.fields);
+
+    // Just return the access token
+    return NextResponse.json({ access_token: data.access_token });
   } catch (err) {
     return NextResponse.json({ error: 'Internal server error', message: err instanceof Error ? err.message : 'Unknown error' }, { status: 500 });
   }
