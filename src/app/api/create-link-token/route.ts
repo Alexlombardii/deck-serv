@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { DECK_CONFIG } from '@/config/deck';
 
 export async function POST() {
   const DECK_CLIENT_ID = process.env.DECK_CLIENT_ID;
@@ -15,7 +16,7 @@ export async function POST() {
   };
 
   try {
-    const response = await fetch('https://sandbox.deck.co/api/v1/link/token/create', {
+    const response = await fetch(`${DECK_CONFIG.baseUrl}/api/v1/link/token/create`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json',

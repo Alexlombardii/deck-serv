@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { DECK_CONFIG } from '@/config/deck';
 
 declare global {
   interface Window {
@@ -28,7 +29,7 @@ export default function Home() {
       return;
     }
     const script = document.createElement("script");
-    script.src = "https://link.deck.co/link-initialize.js";
+    script.src = DECK_CONFIG.sdkUrl;
     script.async = true;
     script.onload = () => setDeckLoaded(true);
     document.body.appendChild(script);
