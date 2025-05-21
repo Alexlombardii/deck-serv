@@ -45,6 +45,8 @@ export default function Home() {
     try {
       const res = await fetch("/api/create-link-token", { method: "POST" });
       const data = await res.json();
+      console.log('Link token response:', { status: res.status, data });
+      
       if (res.ok && data.link_token) {
         if (window.Deck) {
           const handler = window.Deck.create({
@@ -86,9 +88,12 @@ export default function Home() {
         }
       } else {
         setError(data.error ? JSON.stringify(data.error) : "Unknown error");
+        console.error('Link token error:', { status: res.status, data });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed");
+      const errorMessage = err instanceof Error ? err.message : "Request failed";
+      setError(errorMessage);
+      console.error('Link token request failed:', err);
     } finally {
       setLoading(false);
     }
