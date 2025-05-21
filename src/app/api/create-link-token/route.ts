@@ -21,7 +21,7 @@ export async function POST() {
     source_types: ['Electricity'],
   };
 
-  const apiUrl = `${DECK_CONFIG.baseUrl}/link/token/create`;
+  const apiUrl = `${DECK_CONFIG.baseUrl}/api/v1/link/token/create`;
   console.log('Debug - API Request:', {
     url: apiUrl,
     method: 'POST',
