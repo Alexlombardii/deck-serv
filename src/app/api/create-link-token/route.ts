@@ -8,7 +8,9 @@ export async function POST() {
   console.log('Debug - Environment Check:', {
     hasClientId: !!DECK_CLIENT_ID,
     hasSecret: !!DECK_SECRET,
-    baseUrl: DECK_CONFIG.baseUrl
+    baseUrl: DECK_CONFIG.baseUrl,
+    clientIdLength: DECK_CLIENT_ID?.length,
+    secretLength: DECK_SECRET?.length
   });
 
   if (!DECK_CLIENT_ID || !DECK_SECRET) {
@@ -31,7 +33,8 @@ export async function POST() {
       'x-deck-client-id': '***', // masked for security
       'x-deck-secret': '***'     // masked for security
     },
-    body
+    body,
+    bodyString: JSON.stringify(body)
   });
 
   try {
@@ -56,14 +59,23 @@ export async function POST() {
       const errorText = await response.text();
       console.error('Debug - API Error:', {
         status: response.status,
-        errorText
+        errorText,
+        requestUrl: apiUrl,
+        requestMethod: 'POST',
+        requestHeaders: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'x-deck-client-id': '***',
+          'x-deck-secret': '***'
+        }
       });
       return NextResponse.json({ error: 'Deck API error', status: response.status, details: errorText }, { status: response.status });
     }
 
     const data = await response.json();
     console.log('Debug - API Success:', {
-      hasLinkToken: !!data.link_token
+      hasLinkToken: !!data.link_token,
+      responseData: data
     });
     return NextResponse.json({ link_token: data.link_token });
   } catch (err) {
