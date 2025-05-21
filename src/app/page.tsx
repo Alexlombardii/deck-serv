@@ -1,103 +1,107 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useState } from "react";
+
+declare global {
+  interface Window {
+    Deck: any;
+  }
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [linkToken, setLinkToken] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [deckLoaded, setDeckLoaded] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // 1. Load Deck SDK
+  useEffect(() => {
+    if (window.Deck) {
+      setDeckLoaded(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://link.deck.co/link-initialize.js";
+    script.async = true;
+    script.onload = () => setDeckLoaded(true);
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  // 2. Get link token and open widget
+  const openDeckWidget = async () => {
+    setLoading(true);
+    setError(null);
+    setLinkToken(null);
+    try {
+      const res = await fetch("/api/create-link-token", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.link_token) {
+        setLinkToken(data.link_token);
+        if (window.Deck) {
+          const handler = window.Deck.create({
+            token: data.link_token,
+            onSuccess: async ({ public_token }: { public_token: string }) => {
+              console.log("Deck onSuccess! public_token:", public_token);
+              alert("Success! Public token: " + public_token);
+
+              // Exchange public_token for access_token
+              try {
+                const res = await fetch("/api/exchange-public-token", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ public_token }),
+                });
+                const data = await res.json();
+                if (res.ok && data.access_token) {
+                  alert("Access token: " + data.access_token);
+                  console.log("Access token:", data.access_token);
+                  // You can now use/store the access_token as needed
+                } else {
+                  alert("Error exchanging token: " + (data.error || "Unknown error"));
+                  console.error("Exchange error:", data);
+                }
+              } catch (err) {
+                alert("Network error exchanging token");
+                console.error("Network error:", err);
+              }
+            },
+            onExit: () => setLoading(false),
+            onError: (err: any) => {
+              setError(err?.message || "Deck widget error");
+              setLoading(false);
+            },
+          });
+          handler.open();
+        } else {
+          setError("Deck SDK not loaded");
+        }
+      } else {
+        setError(data.error ? JSON.stringify(data.error) : "Unknown error");
+      }
+    } catch (err: any) {
+      setError(err.message || "Request failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen p-8 gap-6">
+      <h1 className="text-2xl font-bold mb-4">DataDeck Link Widget Test</h1>
+      <button
+        className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+        onClick={openDeckWidget}
+        disabled={loading || !deckLoaded}
+      >
+        {loading ? "Loading..." : !deckLoaded ? "Loading Deck..." : "Open Deck Widget"}
+      </button>
+      {error && (
+        <div className="mt-4 p-4 bg-red-100 rounded text-red-800 break-all">
+          <strong>Error:</strong> {error}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
     </div>
   );
 }
