@@ -1,10 +1,16 @@
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
 import { DeckConnection, DeckConnectionRepository } from '@/domain/types/deck';
 import { v4 as uuidv4 } from 'uuid';
 
 const CONNECTION_PREFIX = 'deck:connection:';
 
 export class KVDeckConnectionRepository implements DeckConnectionRepository {
+  private readonly redis: Redis;
+
+  constructor(redis: Redis) {
+    this.redis = redis;
+  }
+
   private generateKey(id: string): string {
     return `${CONNECTION_PREFIX}${id}`;
   }
@@ -19,13 +25,14 @@ export class KVDeckConnectionRepository implements DeckConnectionRepository {
       updated_at: now,
     };
 
-    await kv.set(this.generateKey(id), newConnection);
+    await this.redis.set(this.generateKey(id), JSON.stringify(newConnection));
     return newConnection;
   }
 
   async findById(id: string): Promise<DeckConnection | null> {
-    const connection = await kv.get<DeckConnection>(this.generateKey(id));
-    return connection || null;
+    const data = await this.redis.get<string>(this.generateKey(id));
+    if (!data) return null;
+    return JSON.parse(data) as DeckConnection;
   }
 
   async update(id: string, data: Partial<DeckConnection>): Promise<DeckConnection> {
@@ -40,19 +47,25 @@ export class KVDeckConnectionRepository implements DeckConnectionRepository {
       updated_at: new Date().toISOString(),
     };
 
-    await kv.set(this.generateKey(id), updated);
+    await this.redis.set(this.generateKey(id), JSON.stringify(updated));
     return updated;
   }
 
   async list(): Promise<DeckConnection[]> {
-    const keys = await kv.keys(`${CONNECTION_PREFIX}*`);
+    const keys = await this.redis.keys(`${CONNECTION_PREFIX}*`);
+    if (keys.length === 0) return [];
+
     const connections = await Promise.all(
-      keys.map(key => kv.get<DeckConnection>(key))
+      keys.map(async (key) => {
+        const data = await this.redis.get<string>(key);
+        return data ? JSON.parse(data) as DeckConnection : null;
+      })
     );
+
     return connections.filter((conn): conn is DeckConnection => conn !== null);
   }
 
   async delete(id: string): Promise<void> {
-    await kv.del(this.generateKey(id));
+    await this.redis.del(this.generateKey(id));
   }
 } 
