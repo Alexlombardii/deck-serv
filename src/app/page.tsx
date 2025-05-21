@@ -21,6 +21,9 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [deckLoaded, setDeckLoaded] = useState(false);
+  const [redisTestResult, setRedisTestResult] = useState<any>(null);
+  const [redisTestLoading, setRedisTestLoading] = useState(false);
+  const [redisTestError, setRedisTestError] = useState<string | null>(null);
 
   // 1. Load Deck SDK
   useEffect(() => {
@@ -99,6 +102,29 @@ export default function Home() {
     }
   };
 
+  const testRedisUpload = async () => {
+    setRedisTestLoading(true);
+    setRedisTestError(null);
+    setRedisTestResult(null);
+    try {
+      const res = await fetch("/api/test-upload-redis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ test: "hello redis!", time: new Date().toISOString() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setRedisTestResult(data);
+      } else {
+        setRedisTestError(data.error || "Unknown error");
+      }
+    } catch (err) {
+      setRedisTestError(err instanceof Error ? err.message : "Request failed");
+    } finally {
+      setRedisTestLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8 gap-6">
       <h1 className="text-2xl font-bold mb-4">DataDeck Link Widget Test</h1>
@@ -112,6 +138,26 @@ export default function Home() {
       {error && (
         <div className="mt-4 p-4 bg-red-100 rounded text-red-800 break-all">
           <strong>Error:</strong> {error}
+        </div>
+      )}
+      <button
+        className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+        onClick={testRedisUpload}
+        disabled={redisTestLoading}
+      >
+        {redisTestLoading ? "Testing Redis..." : "Test Redis Upload"}
+      </button>
+      {redisTestResult && (
+        <div className="mt-4 p-4 bg-green-100 rounded text-green-800 break-all w-full max-w-xl">
+          <strong>Redis Test Success!</strong>
+          <div><b>Key:</b> {redisTestResult.key}</div>
+          <div><b>Stored:</b> <pre>{JSON.stringify(redisTestResult.stored, null, 2)}</pre></div>
+          <div><b>Retrieved:</b> <pre>{JSON.stringify(redisTestResult.retrieved, null, 2)}</pre></div>
+        </div>
+      )}
+      {redisTestError && (
+        <div className="mt-4 p-4 bg-red-100 rounded text-red-800 break-all w-full max-w-xl">
+          <strong>Redis Test Error:</strong> {redisTestError}
         </div>
       )}
     </div>
