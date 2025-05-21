@@ -17,11 +17,23 @@ declare global {
   }
 }
 
+type TestData = {
+  test: string;
+  time: string;
+};
+
+type RedisTestResult = {
+  success: boolean;
+  key: string;
+  stored: TestData;
+  retrieved: TestData;
+};
+
 export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [deckLoaded, setDeckLoaded] = useState(false);
-  const [redisTestResult, setRedisTestResult] = useState<any>(null);
+  const [redisTestResult, setRedisTestResult] = useState<RedisTestResult | null>(null);
   const [redisTestLoading, setRedisTestLoading] = useState(false);
   const [redisTestError, setRedisTestError] = useState<string | null>(null);
 
