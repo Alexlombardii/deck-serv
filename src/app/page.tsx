@@ -71,14 +71,14 @@ export default function Home() {
                   alert("Error exchanging token: " + (data.error || "Unknown error"));
                   console.error("Exchange error:", data);
                 }
-              } catch (err) {
+              } catch (error) {
                 alert("Network error exchanging token");
-                console.error("Network error:", err);
+                console.error("Network error:", error);
               }
             },
             onExit: () => setLoading(false),
-            onError: (err: Error) => {
-              setError(err?.message || "Deck widget error");
+            onError: (error: Error) => {
+              setError(error?.message || "Deck widget error");
               setLoading(false);
             },
           });
@@ -90,10 +90,10 @@ export default function Home() {
         setError(data.error ? JSON.stringify(data.error) : "Unknown error");
         console.error('Link token error:', { status: res.status, data });
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Request failed";
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Request failed";
       setError(errorMessage);
-      console.error('Link token request failed:', err);
+      console.error('Link token request failed:', error);
     } finally {
       setLoading(false);
     }
