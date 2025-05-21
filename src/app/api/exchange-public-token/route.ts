@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const response = await fetch(`${DECK_CONFIG.baseUrl}/api/v1/connection/public_token/exchange`, {
+    const response = await fetch(`${DECK_CONFIG.baseUrl}/connection/public_token/exchange`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
