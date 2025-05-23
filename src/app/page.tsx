@@ -45,16 +45,12 @@ export default function Home() {
     try {
       const res = await fetch("/api/create-link-token", { method: "POST" });
       const data = await res.json();
-      console.log('Link token response:', { status: res.status, data });
       
       if (res.ok && data.link_token) {
         if (window.Deck) {
           const handler = window.Deck.create({
             token: data.link_token,
             onSuccess: async ({ public_token }: { public_token: string }) => {
-              console.log("Deck onSuccess! public_token:", public_token);
-              alert("Success! Public token: " + public_token);
-
               // Exchange public_token for access_token
               try {
                 const res = await fetch("/api/exchange-public-token", {
@@ -64,15 +60,13 @@ export default function Home() {
                 });
                 const data = await res.json();
                 if (res.ok && data.access_token) {
-                  alert("Access token: " + data.access_token);
-                  console.log("Access token:", data.access_token);
                   // You can now use/store the access_token as needed
                 } else {
-                  alert("Error exchanging token: " + (data.error || "Unknown error"));
+                  setError("Error exchanging token: " + (data.error || "Unknown error"));
                   console.error("Exchange error:", data);
                 }
               } catch (error) {
-                alert("Network error exchanging token");
+                setError("Network error exchanging token");
                 console.error("Network error:", error);
               }
             },
