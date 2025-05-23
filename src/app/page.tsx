@@ -95,13 +95,13 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8 gap-6">
-      <h1 className="text-2xl font-bold mb-4">DataDeck Link Widget Test</h1>
+      <h1 className="text-2xl font-bold mb-4">Connect Your Utility Account</h1>
       <button
         className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
         onClick={openDeckWidget}
         disabled={loading || !deckLoaded}
       >
-        {loading ? "Loading..." : !deckLoaded ? "Loading Deck..." : "Open Deck Widget"}
+        {loading ? "Loading..." : !deckLoaded ? "Loading Deck..." : "Connect with Deck"}
       </button>
       {error && (
         <div className="mt-4 p-4 bg-red-100 rounded text-red-800 break-all">
