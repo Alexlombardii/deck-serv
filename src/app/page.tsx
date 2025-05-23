@@ -18,8 +18,12 @@ declare global {
 }
 
 type TestData = {
-  test: string;
-  time: string;
+  access_token: string;
+  fields: Array<{
+    field_name: string;
+    field_value: string;
+  }>;
+  status: 'active' | 'inactive' | 'error';
 };
 
 type RedisTestResult = {
@@ -119,10 +123,19 @@ export default function Home() {
     setRedisTestError(null);
     setRedisTestResult(null);
     try {
-      const res = await fetch("/api/test-upload-redis", {
+      const testData: TestData = {
+        access_token: "test_access_token",
+        fields: [
+          { field_name: "email", field_value: "test@example.com" },
+          { field_name: "account_id", field_value: "12345" }
+        ],
+        status: "active"
+      };
+      
+      const res = await fetch("/api/store-connection", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ test: "hello redis!", time: new Date().toISOString() }),
+        body: JSON.stringify(testData),
       });
       const data = await res.json();
       if (res.ok && data.success) {
