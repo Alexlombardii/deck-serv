@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     
     // Store the connection
     const service = createDeckConnectionService();
-    await service.createConnection(data.access_token, data.fields);
+    await service.createConnection(data.connection_id, data.access_token, data.fields);
 
     // Just return the access token
     return NextResponse.json({ access_token: data.access_token });

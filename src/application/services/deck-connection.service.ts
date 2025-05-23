@@ -3,8 +3,9 @@ import { DeckConnection, DeckConnectionRepository, DeckField } from '@/domain/ty
 export class DeckConnectionService {
   constructor(private readonly repository: DeckConnectionRepository) {}
 
-  async createConnection(access_token: string, fields: DeckField[]): Promise<DeckConnection> {
+  async createConnection(connection_id: string, access_token: string, fields: DeckField[]): Promise<DeckConnection> {
     return this.repository.save({
+      connection_id,
       access_token,
       fields,
       status: 'active',

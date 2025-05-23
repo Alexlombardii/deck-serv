@@ -5,6 +5,7 @@ export type DeckField = {
 
 export type DeckConnection = {
   id: string;
+  connection_id: string;
   access_token: string;
   fields: DeckField[];
   status: 'active' | 'inactive' | 'error';
