@@ -21,6 +21,7 @@ export async function POST() {
     language: 'EN',
     countries: ['US'],
     source_types: ['Electricity'],
+    products: ["Sustainability", "Bill", "CreditRisk"]
   };
 
   const apiUrl = `${DECK_CONFIG.baseUrl}/link/token/create`;
